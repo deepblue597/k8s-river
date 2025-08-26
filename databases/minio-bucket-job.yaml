@@ -1,0 +1,32 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: minio-bucket-setup
+spec:
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+      - name: minio-client
+        image: minio/mc:latest
+        command:
+        - /bin/sh
+        - -c
+        - |
+          echo "Waiting for MinIO to be ready..."
+          until mc alias set minio http://minio:9000 minio minio123; do
+            echo "MinIO not ready, waiting..."
+            sleep 5
+          done
+          
+          echo "Creating bucket 'river'..."
+          mc mb minio/river --ignore-existing
+          
+          echo "Setting bucket policy to public read..."
+          mc anonymous set public minio/river
+          
+          echo "Bucket setup complete!"
+          mc ls minio/
+        env:
+        - name: MC_HOST_minio
+          value: "http://minio:minio123@minio:9000"
