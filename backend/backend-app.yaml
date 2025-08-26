@@ -1,0 +1,96 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: river-backend
+spec:
+  selector:
+    app: backend-service # must match the app label in the deployment
+  type: ClusterIP
+  ports:
+    - port: 8000 # port exposed by the service
+      name: backend
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend-service # name of the deployment
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: backend-service # must match the app label in the pod template
+  template:
+    metadata:
+      labels:
+        app: backend-service # label for the pod
+    spec:
+      containers:
+        - name: backend-service # name of the container
+          image: deepblue597/river-backend:latest
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          ports:
+            - containerPort: 8000
+              name: backend
+          env:
+            - name: MINIO_ADDRESS
+              valueFrom:
+                configMapKeyRef:
+                  name: backend-config
+                  key: MINIO_ADDRESS
+            - name: MINIO_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: backend-config
+                  key: MINIO_PORT
+            - name: KAFKA_ADDRESS
+              valueFrom:
+                configMapKeyRef:
+                  name: backend-config
+                  key: KAFKA_ADDRESS
+            - name: KAFKA_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: backend-config
+                  key: KAFKA_PORT
+            - name: MINIO_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: backend-secrets
+                  key: MINIO_ACCESS_KEY
+            - name: MINIO_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: backend-secrets
+                  key: MINIO_SECRET_KEY
+          # Health checks
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 8000
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+          startupProbe:
+            httpGet:
+              path: /
+              port: 8000
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 30
