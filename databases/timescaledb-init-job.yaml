@@ -1,0 +1,150 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: timescaledb-init-job
+  labels:
+    app: timescaledb-init
+spec:
+  backoffLimit: 3
+  template:
+    metadata:
+      labels:
+        app: timescaledb-init
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: timescaledb-init
+          image: timescale/timescaledb:latest-pg17
+          env:
+            - name: PGHOST
+              value: "timescaledb-service"
+            - name: PGPORT
+              value: "5432"
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: timescaledb-secret
+                  key: POSTGRES_USER
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: timescaledb-secret
+                  key: POSTGRES_PASSWORD
+            - name: POSTGRES_DB
+              valueFrom:
+                secretKeyRef:
+                  name: timescaledb-secret
+                  key: POSTGRES_DB
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: timescaledb-secret
+                  key: POSTGRES_PASSWORD
+          command:
+            - /bin/bash
+            - -c
+            - |
+              set -e
+              echo "Waiting for TimescaleDB to be ready..."
+
+              # Wait for TimescaleDB to be ready
+              until pg_isready -h $PGHOST -p $PGPORT -U $POSTGRES_USER; do
+                echo "Waiting for database..."
+                sleep 2
+              done
+
+              echo "TimescaleDB is ready. Starting initialization..."
+
+              # Connect to database and create the river_segmentation hypertable
+              psql -h $PGHOST -p $PGPORT -U $POSTGRES_USER -d $POSTGRES_DB << 'EOSQL'
+
+              -- Enable TimescaleDB extension if not already enabled
+              CREATE EXTENSION IF NOT EXISTS timescaledb;
+
+              -- Create the river_segmentation table
+              CREATE TABLE IF NOT EXISTS river_segmentation (
+                  timestamp TIMESTAMP NOT NULL,
+                  model_name VARCHAR(255),
+                  filename VARCHAR(255),
+                  water_coverage FLOAT,
+                  avg_confidence FLOAT,
+                  overflow_detected BOOLEAN,
+                  location VARCHAR(255)
+              );
+
+              -- Convert to hypertable (only if not already converted)
+              SELECT create_hypertable('river_segmentation', 'timestamp', if_not_exists => TRUE);
+
+              -- Create indexes for better query performance
+              CREATE INDEX IF NOT EXISTS idx_river_segmentation_model_name ON river_segmentation (model_name);
+              CREATE INDEX IF NOT EXISTS idx_river_segmentation_location ON river_segmentation (location);
+              CREATE INDEX IF NOT EXISTS idx_river_segmentation_timestamp_location ON river_segmentation (timestamp, location);
+              CREATE INDEX IF NOT EXISTS idx_river_segmentation_overflow ON river_segmentation (overflow_detected);
+
+              -- Create continuous aggregates for statistics
+              -- Daily statistics
+              CREATE MATERIALIZED VIEW IF NOT EXISTS river_segmentation_daily
+              WITH (timescaledb.continuous) AS
+              SELECT 
+                  time_bucket('1 day', timestamp) AS bucket,
+                  location,
+                  model_name,
+                  COUNT(*) as total_records,
+                  AVG(water_coverage) as avg_water_coverage,
+                  MAX(water_coverage) as max_water_coverage,
+                  MIN(water_coverage) as min_water_coverage,
+                  AVG(avg_confidence) as avg_confidence_score,
+                  COUNT(*) FILTER (WHERE overflow_detected = true) as overflow_count,
+                  COUNT(*) FILTER (WHERE overflow_detected = false) as no_overflow_count,
+                  STDDEV(water_coverage) as stddev_water_coverage
+              FROM river_segmentation
+              GROUP BY bucket, location, model_name;
+
+              -- Weekly statistics
+              CREATE MATERIALIZED VIEW IF NOT EXISTS river_segmentation_weekly
+              WITH (timescaledb.continuous) AS
+              SELECT 
+                  time_bucket('1 week', timestamp) AS bucket,
+                  location,
+                  model_name,
+                  COUNT(*) as total_records,
+                  AVG(water_coverage) as avg_water_coverage,
+                  MAX(water_coverage) as max_water_coverage,
+                  MIN(water_coverage) as min_water_coverage,
+                  AVG(avg_confidence) as avg_confidence_score,
+                  COUNT(*) FILTER (WHERE overflow_detected = true) as overflow_count,
+                  COUNT(*) FILTER (WHERE overflow_detected = false) as no_overflow_count,
+                  STDDEV(water_coverage) as stddev_water_coverage
+              FROM river_segmentation
+              GROUP BY bucket, location, model_name;
+
+              -- Set up automatic refresh policies for continuous aggregates
+              SELECT add_continuous_aggregate_policy('river_segmentation_daily',
+                  start_offset => INTERVAL '3 days',
+                  end_offset => INTERVAL '1 day',
+                  schedule_interval => INTERVAL '1 hour');
+
+              SELECT add_continuous_aggregate_policy('river_segmentation_weekly',
+                  start_offset => INTERVAL '3 weeks',
+                  end_offset => INTERVAL '1 week',
+                  schedule_interval => INTERVAL '1 day');
+
+              -- Create compression policy for old data (compress data older than 3 months)
+              SELECT add_compression_policy('river_segmentation', INTERVAL '3 months');
+
+              -- Create retention policy (keep data for 2 years)
+              SELECT add_retention_policy('river_segmentation', INTERVAL '2 years');
+
+              -- Grant necessary permissions
+              GRANT SELECT, INSERT, UPDATE, DELETE ON river_segmentation TO PUBLIC;
+              GRANT SELECT ON river_segmentation_daily TO PUBLIC;
+              GRANT SELECT ON river_segmentation_weekly TO PUBLIC;
+
+              EOSQL
+
+              echo "TimescaleDB initialization completed successfully!"
+              echo "Created:"
+              echo "- river_segmentation hypertable"
+              echo "- Continuous aggregates (daily, weekly)"
+              echo "- Compression and retention policies"
+              echo "- Performance indexes"
