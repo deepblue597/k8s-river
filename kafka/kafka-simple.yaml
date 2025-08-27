@@ -3,6 +3,8 @@ kind: Kafka
 metadata:
   name: simple-kafka
   namespace: kafka
+  annotations:
+    strimzi.io/kraft: enabled
 spec:
   kafka:
     version: 3.9.0
@@ -40,17 +42,7 @@ spec:
     jvmOptions:
       -Xms: 256m
       -Xmx: 512m
-  zookeeper:
-    replicas: 1
-    storage:
-      type: ephemeral
-    resources:
-      requests:
-        memory: 256Mi
-        cpu: "200m"
-      limits:
-        memory: 512Mi
-        cpu: "300m"
+  # No Zookeeper section for KRaft mode
   entityOperator:
     topicOperator:
       resources:
