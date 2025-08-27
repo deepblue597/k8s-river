@@ -24,7 +24,7 @@ spec:
   ports:
     - port: 9001
       targetPort: 9001
-      nodePort: 30901  # You can access via <node-ip>:30901
+      nodePort: 30901 # You can access via <node-ip>:30901
       name: console
 
 ---
@@ -34,7 +34,7 @@ kind: Service
 metadata:
   name: minio-headless
 spec:
-  clusterIP: None  # This makes it headless
+  clusterIP: None # This makes it headless
   selector:
     app: minio-app
   ports:
@@ -119,4 +119,4 @@ spec:
         accessModes: ["ReadWriteOnce"]
         resources:
           requests:
-            storage: 10Gi
+            storage: 5Gi # Adjust size as needed in production

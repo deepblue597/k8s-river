@@ -1,0 +1,115 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: river-model # name of the deployment
+spec:
+  replicas: 2 # number of pod replicas. Adjust based on load
+  selector:
+    matchLabels:
+      app: river-model # must match the app label in the pod template
+  template:
+    metadata:
+      labels:
+        app: river-model # label for the pod
+    spec:
+      containers:
+        - name: river-model # name of the container
+          image: deepblue597/river-segmentation:latest
+          resources:
+            requests:
+              memory: "1Gi"
+              cpu: "500m"
+            limits:
+              memory: "2Gi"
+              cpu: "1000m"
+          env:
+            - name: MODEL_PATH
+              valueFrom:
+                configMapKeyRef:
+                  name: river-model-config
+                  key: MODEL_PATH
+            - name: MODEL_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: river-model-config
+                  key: MODEL_NAME
+            - name: OVERFLOW_THRESHOLD
+              valueFrom:
+                configMapKeyRef:
+                  name: river-model-config
+                  key: OVERFLOW_THRESHOLD
+            - name: MINIO_ADDRESS
+              valueFrom:
+                configMapKeyRef:
+                  name: river-model-config
+                  key: MINIO_ADDRESS
+            - name: MINIO_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: river-model-config
+                  key: MINIO_PORT
+            - name: MINIO_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: minio-secrets
+                  key: MINIO_ACCESS_KEY
+            - name: MINIO_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: minio-secrets
+                  key: MINIO_SECRET_KEY
+            - name: MINIO_BUCKET
+              valueFrom:
+                configMapKeyRef:
+                  name: river-model-config
+                  key: MINIO_BUCKET
+            - name: TIMESCALE_ADDRESS
+              valueFrom:
+                configMapKeyRef:
+                  name: river-model-config
+                  key: TIMESCALE_ADDRESS
+            - name: TIMESCALE_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: river-model-config
+                  key: TIMESCALE_PORT
+            - name: TIMESCALE_DB
+              valueFrom:
+                secretKeyRef:
+                  name: timescaledb-secret
+                  key: POSTGRES_DB
+            - name: TIMESCALE_USER
+              valueFrom:
+                secretKeyRef:
+                  name: timescaledb-secret
+                  key: POSTGRES_USER
+            - name: TIMESCALE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: timescaledb-secret
+                  key: POSTGRES_PASSWORD
+            - name: TIMESCALE_TABLE
+              valueFrom:
+                configMapKeyRef:
+                  name: river-model-config
+                  key: TIMESCALE_TABLE
+            - name: KAFKA_ADDRESS
+              valueFrom:
+                configMapKeyRef:
+                  name: river-model-config
+                  key: KAFKA_ADDRESS
+            - name: KAFKA_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: river-model-config
+                  key: KAFKA_PORT
+            - name: KAFKA_TOPIC
+              valueFrom:
+                configMapKeyRef:
+                  name: river-model-config
+                  key: KAFKA_TOPIC
+            - name: KAFKA_CONSUMER_GROUP
+              valueFrom:
+                configMapKeyRef:
+                  name: river-model-config
+                  key: KAFKA_CONSUMER_GROUP
