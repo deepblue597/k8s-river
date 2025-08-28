@@ -47,51 +47,28 @@ kubectl get pods -n kafka
 kubectl logs deployment/strimzi-cluster-operator -n kafka
 ```
 
-### Step 2: Deploy Kafka Cluster
+### Step 2: Deploy Kafka Service and UI
 ```bash
-# Deploy the cluster (this takes 3-5 minutes)
-kubectl apply -f kafka-cluster.yaml
+# Deploy the Kafka service (internal access)
+kubectl apply -f kafka/kafka-service.yaml
 
-# Monitor deployment progress
-kubectl get kafka -n kafka
-kubectl get pods -n kafka -w
-```
-
-### Step 3: Create River Topic
-```bash
-# Create topic for river segmentation data
-kubectl apply -f kafka-topic.yaml
-
-# Verify topic creation
-kubectl get kafkatopics -n kafka
-```
-
-### Step 4: Deploy Kafka UI
-```bash
-# Deploy web UI
-kubectl apply -f kafka-ui.yaml
+# Deploy the Kafka UI
+kubectl apply -f kafka/kafka-ui.yaml
 
 # Check UI status
 kubectl get pods -n kafka -l app=kafka-ui
-```
-
-### Step 5: Create Cross-Namespace Service
-```bash
-# Allow river-model (default ns) to access Kafka (kafka ns)
-kubectl apply -f kafka-service.yaml
-
 # Verify service
-kubectl get svc kafka-service
+kubectl get svc -n kafka kafka-service
 ```
 
 ## Configuration Details
 
 ### Kafka Cluster Specs
-- **Version**: Apache Kafka 3.8.0
+- **Version**: Apache Kafka 4.0.0
 - **Mode**: KRaft (Kafka Raft consensus)
 - **Brokers**: 3 replicas for HA
-- **Storage**: 10Gi persistent volumes per broker
-- **Resources**: 1-2Gi memory, 500m-1000m CPU per broker
+- **Storage**: 5Gi persistent volumes per broker (adjust as needed)
+- **Resources**: 1Gi memory, 500m CPU per broker (adjust for your environment)
 
 ### Security & Access
 - **Internal**: Plain + TLS listeners
@@ -111,9 +88,9 @@ kubectl get svc kafka-service
 - **Features**: Cluster overview, topics, consumers, messages
 
 ### Kafka Endpoints
-- **Internal**: `river-kafka-kafka-bootstrap.kafka.svc.cluster.local:9092`
-- **From Default NS**: `kafka-service:9092` (river-model uses this)
-- **External**: NodePort on random high port
+- **Internal**: `my-cluster-kafka-bootstrap.kafka.svc.cluster.local:9092`
+- **From Default NS**: `kafka-service.kafka.svc.cluster.local:9092` (use this in backend/model configs)
+- **External**: NodePort via Kafka UI (if exposed)
 
 ## Monitoring & Verification
 
@@ -152,7 +129,7 @@ kubectl get kafkatopics -n kafka
 ### Common Issues
 1. **Operator not ready**: Wait for `strimzi-cluster-operator` pod to be Running
 2. **Cluster creation timeout**: Check resource constraints and storage class
-3. **Cross-namespace access**: Verify `kafka-service` ExternalName configuration
+3. **Cross-namespace access**: Verify `kafka-service` ClusterIP configuration
 4. **Topic not found**: Wait for Topic Operator to process KafkaTopic resource
 
 ### Debug Commands
