@@ -24,7 +24,7 @@ spec:
   ports:
     - port: 9001
       targetPort: 9001
-      nodePort: 30901 # You can access via <node-ip>:30901
+      nodePort: 30901  # You can access via <node-ip>:30901
       name: console
 
 ---
@@ -34,7 +34,7 @@ kind: Service
 metadata:
   name: minio-headless
 spec:
-  clusterIP: None # This makes it headless
+  clusterIP: None  # This makes it headless
   selector:
     app: minio-app
   ports:
@@ -52,7 +52,7 @@ spec:
     matchLabels:
       app: minio-app # must match the app label in the pod template
   serviceName: "minio-headless" # headless service name
-  replicas: 2
+  replicas: 1
   template:
     metadata:
       labels:
@@ -63,10 +63,10 @@ spec:
           image: quay.io/minio/minio
           resources:
             requests:
-              memory: "512Mi"
+              memory: "256Mi"
               cpu: "250m"
             limits:
-              memory: "1Gi"
+              memory: "512Mi"
               cpu: "500m"
           ports:
             - containerPort: 9000
@@ -77,12 +77,12 @@ spec:
             - name: minio-storage
               mountPath: /data
 
-          # Define the command and arguments to run MinIO in distributed mode
+          # Define the command and arguments to run MinIO in single-node mode
           command:
             - /bin/bash
             - -c
           args:
-            - minio server http://minio-app-{0...1}.minio-headless.default.svc.cluster.local:9000/data --console-address ":9001"
+            - minio server /data --console-address ":9001"
           env:
             - name: MINIO_ROOT_USER
               valueFrom:
@@ -119,4 +119,4 @@ spec:
         accessModes: ["ReadWriteOnce"]
         resources:
           requests:
-            storage: 5Gi # Adjust size as needed in production
+            storage: 2Gi

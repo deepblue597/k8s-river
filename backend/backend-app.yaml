@@ -16,7 +16,7 @@ kind: Deployment
 metadata:
   name: backend-service # name of the deployment
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: backend-service # must match the app label in the pod template

@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: river-model # name of the deployment
 spec:
-  replicas: 2 # number of pod replicas. Adjust based on load
+  replicas: 1 # number of pod replicas. Adjust based on load
   selector:
     matchLabels:
       app: river-model # must match the app label in the pod template
@@ -17,11 +17,11 @@ spec:
           image: deepblue597/river-segmentation:latest
           resources:
             requests:
-              memory: "1Gi"
-              cpu: "500m"
+              memory: "512Mi"
+              cpu: "250m"
             limits:
-              memory: "2Gi"
-              cpu: "1000m"
+              memory: "1Gi"
+              cpu: "1"
           env:
             - name: MODEL_PATH
               valueFrom:

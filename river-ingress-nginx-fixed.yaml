@@ -4,9 +4,29 @@ metadata:
   name: river-ingress
   labels:
     app.kubernetes.io/name: river-ingress
+  annotations:
+    # Enable CORS for all services
+    nginx.ingress.kubernetes.io/enable-cors: "true"
+    nginx.ingress.kubernetes.io/cors-allow-methods: "GET, POST, PUT, DELETE, OPTIONS"
+    nginx.ingress.kubernetes.io/cors-allow-headers: "DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range,Authorization"
+
+    # Increase proxy timeouts for long-running requests
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "600"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
+
+    # Enable gzip compression
+    nginx.ingress.kubernetes.io/use-gzip: "true"
+
+    # Set max body size for file uploads
+    nginx.ingress.kubernetes.io/proxy-body-size: "100m"
 
 spec:
+  # Use ingressClassName instead of annotation (recommended for newer K8s versions)
+  ingressClassName: nginx
+
   rules:
+    # MinIO Console - Object Storage UI
     - host: minio.local
       http:
         paths:
@@ -17,6 +37,8 @@ spec:
                 name: minio-console
                 port:
                   number: 9001
+
+    # Backend API - FastAPI
     - host: backend.local
       http:
         paths:
@@ -24,9 +46,11 @@ spec:
             path: "/"
             backend:
               service:
-                name: backend-service
+                name: river-backend
                 port:
                   number: 8000
+
+    # Frontend - Streamlit App
     - host: riverseg.local
       http:
         paths:
@@ -37,6 +61,8 @@ spec:
                 name: frontend-service
                 port:
                   number: 8501
+
+    # Grafana - Monitoring Dashboard
     - host: grafanariver.local
       http:
         paths:
@@ -45,25 +71,5 @@ spec:
             backend:
               service:
                 name: grafana-service
-                port:
-                  number: 3000
-    - host: kafka.local
-      http:
-        paths:
-          - pathType: Prefix
-            path: "/"
-            backend:
-              service:
-                name: kafka-service
-                port:
-                  number: 9092
-    - host: grafanak8s.local
-      http:
-        paths:
-          - pathType: Prefix
-            path: "/"
-            backend:
-              service:
-                name: grafana-k8s-service
                 port:
                   number: 3000

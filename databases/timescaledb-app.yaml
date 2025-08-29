@@ -34,7 +34,7 @@ spec:
     matchLabels:
       app: timescaledb-app # must match the app label in the pod template
   serviceName: "timescaledb-headless"
-  replicas: 2
+  replicas: 1
   podManagementPolicy: Parallel
   template:
     metadata:
@@ -146,11 +146,11 @@ spec:
               mountPath: /pgdata # Mount the volume at /pgdata
           resources:
             requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
               memory: "1Gi"
               cpu: "500m"
-            limits:
-              memory: "2Gi"
-              cpu: "1"
           readinessProbe:
             exec:
               command:
@@ -174,4 +174,4 @@ spec:
         accessModes: ["ReadWriteOnce"]
         resources:
           requests:
-            storage: 10Gi
+            storage: 2Gi

@@ -17,7 +17,7 @@ kind: Deployment
 metadata:
   name: grafana-app # name of the deployment
 spec:
-  replicas: 2 # number of pod replicas
+  replicas: 1 # number of pod replicas
   selector:
     matchLabels:
       app: grafana-app # must match the app label in the pod template

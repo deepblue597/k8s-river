@@ -15,7 +15,7 @@ kind: Deployment
 metadata:
   name: frontend-app
 spec:
-  replicas: 3 # number of pod replicas. Can be adjusted with HPA
+  replicas: 1 # number of pod replicas. Can be adjusted with HPA
   selector:
     matchLabels:
       app: frontend-app # must match the app label in the pod template
@@ -67,8 +67,8 @@ spec:
             failureThreshold: 30
           resources:
             requests:
+              memory: "256Mi"
+              cpu: "250m"
+            limits:
               memory: "512Mi"
               cpu: "500m"
-            limits:
-              memory: "1Gi"
-              cpu: "1"
