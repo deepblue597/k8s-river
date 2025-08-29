@@ -109,3 +109,15 @@ spec:
                 name: kube-prometheus-stack-grafana
                 port:
                   number: 80
+
+    # Kafka UI - Cluster Management
+    - host: kafka.local
+      http:
+        paths:
+          - pathType: Prefix
+            path: "/"
+            backend:
+              service:
+                name: kafka-ui-service
+                port:
+                  number: 8080

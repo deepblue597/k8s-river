@@ -236,7 +236,7 @@ kubectl port-forward -n ingress-nginx service/ingress-nginx-controller 8080:80 -
 | **K8s Grafana**   | <http://grafanak8s.local:8080/>   | Infrastructure monitoring     | admin/k8sGrafana!2025   |
 | **Prometheus**    | <http://prometheus.local:8080/>   | Metrics collection & querying | N/A                     |
 | **Alertmanager**  | <http://alertmanager.local:8080/> | Alert management              | N/A                     |
-| **Kafka UI**      | <http://localhost:30808/>         | Kafka cluster management      | N/A                     |
+| **Kafka UI**      | <http://kafka.local:8080/>        | Kafka cluster management      | N/A                     |
 
 ## 📁 Repository Structure
 
