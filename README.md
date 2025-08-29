@@ -78,7 +78,7 @@ graph TB
 
 ### Prerequisites
 
-- **Minikube**: Running with at least 4GB RAM and 2 CPUs
+- **Minikube**: Running with at least 8GB RAM and 4 CPUs
 - **kubectl**: Configured to connect to your cluster
 - **Helm**: For installing ingress-nginx and kube-prometheus-stack
 - **Windows PowerShell**: For running commands (or adapt for your shell)
@@ -227,16 +227,16 @@ kubectl port-forward -n ingress-nginx service/ingress-nginx-controller 8080:80 -
 
 ## 🌐 Service Access Points
 
-| Service           | URL                               | Description                   | Credentials         |
-| ----------------- | --------------------------------- | ----------------------------- | ------------------- |
-| **Frontend**      | <http://riverseg.local:8080/>     | Streamlit application UI      | N/A                 |
-| **Backend**       | <http://backend.local:8080/>      | FastAPI backend API           | N/A                 |
-| **MinIO Console** | <http://minio.local:8080/>        | Object storage management     | admin/minio123      |
-| **Model Grafana** | <http://grafanariver.local:8080/> | Application monitoring        | admin/admin         |
-| **K8s Grafana**   | <http://grafanak8s.local:8080/>   | Infrastructure monitoring     | admin/prom-operator |
-| **Prometheus**    | <http://prometheus.local:8080/>   | Metrics collection & querying | N/A                 |
-| **Alertmanager**  | <http://alertmanager.local:8080/> | Alert management              | N/A                 |
-| **Kafka UI**      | <http://localhost:30808/>         | Kafka cluster management      | N/A                 |
+| Service           | URL                               | Description                   | Credentials             |
+| ----------------- | --------------------------------- | ----------------------------- | ----------------------- |
+| **Frontend**      | <http://riverseg.local:8080/>     | Streamlit application UI      | N/A                     |
+| **Backend**       | <http://backend.local:8080/>      | FastAPI backend API           | N/A                     |
+| **MinIO Console** | <http://minio.local:8080/>        | Object storage management     | minio/minio123          |
+| **Model Grafana** | <http://grafanariver.local:8080/> | Application monitoring        | admin/secretPassword!2# |
+| **K8s Grafana**   | <http://grafanak8s.local:8080/>   | Infrastructure monitoring     | admin/k8sGrafana!2025   |
+| **Prometheus**    | <http://prometheus.local:8080/>   | Metrics collection & querying | N/A                     |
+| **Alertmanager**  | <http://alertmanager.local:8080/> | Alert management              | N/A                     |
+| **Kafka UI**      | <http://localhost:30808/>         | Kafka cluster management      | N/A                     |
 
 ## 📁 Repository Structure
 
@@ -448,11 +448,3 @@ kubectl get events --sort-by=.metadata.creationTimestamp
 2. Create a feature branch
 3. Test your changes thoroughly
 4. Submit a pull request with detailed description
-
-## 📄 License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
----
-
-_For detailed component-specific instructions, refer to the README files in each subdirectory._
