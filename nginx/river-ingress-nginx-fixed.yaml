@@ -62,7 +62,7 @@ spec:
                 port:
                   number: 8501
 
-    # Grafana - Model Monitoring Dashboard (your existing one)
+    # Grafana - Monitoring Dashboard
     - host: grafanariver.local
       http:
         paths:
