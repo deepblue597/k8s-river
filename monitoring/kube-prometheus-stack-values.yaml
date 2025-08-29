@@ -9,7 +9,7 @@ fullnameOverride: ""
 # Prometheus configuration
 prometheus:
   enabled: true
-  
+
   prometheusSpec:
     # Resource limits for Minikube
     resources:
@@ -19,7 +19,7 @@ prometheus:
       limits:
         cpu: 500m
         memory: 800Mi
-    
+
     # Storage configuration
     storageSpec:
       volumeClaimTemplate:
@@ -28,30 +28,30 @@ prometheus:
           resources:
             requests:
               storage: 5Gi
-    
+
     # Retention settings
     retention: 7d
     retentionSize: 4GB
-    
+
     # Replica count
     replicas: 1
-    
+
     # Service monitor selector (monitor all services with labels)
     serviceMonitorSelectorNilUsesHelmValues: false
     podMonitorSelectorNilUsesHelmValues: false
     ruleSelectorNilUsesHelmValues: false
-    
+
     # Enable ingress for external access
     ingress:
-      enabled: false  # We'll use port-forward for now
+      enabled: false # We'll use port-forward for now
 
 # Grafana configuration (K8s infrastructure monitoring)
 grafana:
-  enabled: true  # Enable for K8s monitoring dashboards
-  
+  enabled: true # Enable for K8s monitoring dashboards
+
   # Admin credentials (different from your model monitoring Grafana)
-  adminPassword: "k8sGrafana!2025"  # Different password for security
-  
+  adminPassword: "k8sGrafana!2025" # Different password for security
+
   # Resource limits
   resources:
     requests:
@@ -60,32 +60,32 @@ grafana:
     limits:
       cpu: 200m
       memory: 256Mi
-  
+
   # Persistence
   persistence:
     enabled: true
     size: 2Gi
-  
+
   # Service configuration
   service:
     type: ClusterIP
     port: 80
-  
+
   # Ingress configuration
   ingress:
     enabled: false
-  
+
   # Default K8s dashboards (this is the main benefit!)
   defaultDashboardsEnabled: true
-  
+
   # Grafana configuration
   grafana.ini:
     server:
       protocol: http
       http_port: 3000
       domain: grafanak8s.local
-      # Remove the problematic root_url that was causing redirects
-      serve_from_sub_path: true
+      # Disable sub-path serving for direct access
+      serve_from_sub_path: false
     security:
       disable_gravatar: true
     users:
@@ -101,7 +101,7 @@ grafana:
 # Alertmanager configuration
 alertmanager:
   enabled: true
-  
+
   alertmanagerSpec:
     # Resource limits
     resources:
@@ -111,7 +111,7 @@ alertmanager:
       limits:
         cpu: 100m
         memory: 128Mi
-    
+
     # Storage
     storage:
       volumeClaimTemplate:
@@ -120,14 +120,14 @@ alertmanager:
           resources:
             requests:
               storage: 1Gi
-    
+
     # Replica count
     replicas: 1
 
 # Node Exporter (collects node metrics)
 nodeExporter:
   enabled: true
-  
+
   resources:
     requests:
       cpu: 50m
@@ -139,7 +139,7 @@ nodeExporter:
 # Kube State Metrics (collects Kubernetes object metrics)
 kubeStateMetrics:
   enabled: true
-  
+
   resources:
     requests:
       cpu: 50m
@@ -151,7 +151,7 @@ kubeStateMetrics:
 # Prometheus Operator
 prometheusOperator:
   enabled: true
-  
+
   resources:
     requests:
       cpu: 100m
@@ -159,7 +159,7 @@ prometheusOperator:
     limits:
       cpu: 200m
       memory: 200Mi
-  
+
   # Admission webhooks
   admissionWebhooks:
     enabled: true

@@ -62,7 +62,7 @@ spec:
                 port:
                   number: 8501
 
-    # Grafana - Monitoring Dashboard
+    # Grafana - Monitoring Dashboard (Model Monitoring)
     - host: grafanariver.local
       http:
         paths:
@@ -73,3 +73,39 @@ spec:
                 name: grafana-service
                 port:
                   number: 3000
+
+    # Prometheus - Metrics Collection & Querying
+    - host: prometheus.local
+      http:
+        paths:
+          - pathType: Prefix
+            path: "/"
+            backend:
+              service:
+                name: kube-prometheus-stack-prometheus
+                port:
+                  number: 9090
+
+    # Alertmanager - Alert Management
+    - host: alertmanager.local
+      http:
+        paths:
+          - pathType: Prefix
+            path: "/"
+            backend:
+              service:
+                name: kube-prometheus-stack-alertmanager
+                port:
+                  number: 9093
+
+    # Grafana K8s - Infrastructure Monitoring
+    - host: grafanak8s.local
+      http:
+        paths:
+          - pathType: Prefix
+            path: "/"
+            backend:
+              service:
+                name: kube-prometheus-stack-grafana
+                port:
+                  number: 80
